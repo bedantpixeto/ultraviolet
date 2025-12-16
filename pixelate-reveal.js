@@ -61,13 +61,35 @@ class PixelateReveal {
   }
 
   init() {
-    // Set canvas size to match image
-    this.canvas.width = this.img.naturalWidth || this.img.width;
-    this.canvas.height = this.img.naturalHeight || this.img.height;
+    // Get device pixel ratio for sharp rendering on high-DPI screens
+    const dpr = window.devicePixelRatio || 1;
+
+    // Get display size
+    const displayWidth = this.img.naturalWidth || this.img.width;
+    const displayHeight = this.img.naturalHeight || this.img.height;
+
+    // Set canvas internal size (scaled by DPR for sharpness)
+    this.canvas.width = displayWidth * dpr;
+    this.canvas.height = displayHeight * dpr;
+
+    // Set canvas display size (CSS pixels)
+    this.canvas.style.width = displayWidth + 'px';
+    this.canvas.style.height = displayHeight + 'px';
+
+    // Scale context to match DPR
+    this.ctx.scale(dpr, dpr);
+
+    // Store display dimensions for drawing
+    this.displayWidth = displayWidth;
+    this.displayHeight = displayHeight;
 
     // Copy image styles
     this.canvas.style.cssText = this.img.style.cssText;
     this.canvas.className = this.img.className;
+
+    // Preserve display size after copying styles
+    this.canvas.style.width = displayWidth + 'px';
+    this.canvas.style.height = displayHeight + 'px';
 
     // Replace image with canvas
     this.img.style.display = 'none';
@@ -83,7 +105,7 @@ class PixelateReveal {
   }
 
   drawOriginal() {
-    this.ctx.drawImage(this.img, 0, 0, this.canvas.width, this.canvas.height);
+    this.ctx.drawImage(this.img, 0, 0, this.displayWidth, this.displayHeight);
   }
 
   /**
@@ -96,8 +118,8 @@ class PixelateReveal {
       return;
     }
 
-    const width = this.canvas.width;
-    const height = this.canvas.height;
+    const width = this.displayWidth;
+    const height = this.displayHeight;
 
     // Draw scaled-down version
     this.ctx.imageSmoothingEnabled = false;
